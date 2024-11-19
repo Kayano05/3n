@@ -140,7 +140,8 @@ const form = ref({
 const rules = {
   email: [
     { required: true, message: '请输入邮箱地址', trigger: 'blur' },
-    { type: 'email', message: '请输入正确的邮箱格式', trigger: 'blur' }
+    { type: 'email', message: '请输入正确的邮箱格式', trigger: 'blur' },
+    { pattern: /^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+$/, message: '请输入正确的邮箱格式', trigger: 'blur' }
   ],
   verificationCode: [
     { required: true, message: '请输入验证码', trigger: 'blur' },

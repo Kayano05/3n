@@ -29,18 +29,18 @@ public class AuthController {
     public ResponseEntity<?> sendVerificationCode(@RequestBody EmailRequest request) {
         logger.info("Received send-code request for email: {}", request.getEmail());
         
-        // 验证请求数据
-        if (request == null || request.getEmail() == null || request.getEmail().trim().isEmpty()) {
-            logger.error("Invalid request: email is null or empty");
+        // 验证邮箱格式
+        String email = request.getEmail();
+        if (email == null || !email.matches("^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+$")) {
             Map<String, Object> response = new HashMap<>();
             response.put("success", false);
-            response.put("message", "邮箱地址不能为空");
+            response.put("message", "请输入正确的邮箱格式");
             return ResponseEntity.badRequest().body(response);
         }
 
         try {
             logger.info("Starting to generate and send verification code");
-            String code = verificationService.generateAndSendCode(request.getEmail());
+            String code = verificationService.generateAndSendCode(email);
             logger.info("Successfully generated and sent verification code: {}", code);
             
             Map<String, Object> response = new HashMap<>();
@@ -51,17 +51,13 @@ public class AuthController {
             logger.error("Failed to send verification code: ", e);
             Map<String, Object> response = new HashMap<>();
             response.put("success", false);
-            response.put("message", "发送验证码失败：" + e.getMessage());
-            response.put("error", e.toString());
-            response.put("stackTrace", e.getStackTrace());
+            response.put("message", "发送验证码失败，请检查邮箱地址是否正确");
             return ResponseEntity.status(500).body(response);
         } catch (Exception e) {
             logger.error("Unexpected error while sending verification code: ", e);
             Map<String, Object> response = new HashMap<>();
             response.put("success", false);
-            response.put("message", "系统错误：" + e.getMessage());
-            response.put("error", e.toString());
-            response.put("stackTrace", e.getStackTrace());
+            response.put("message", "系统错误，请稍后重试");
             return ResponseEntity.status(500).body(response);
         }
     }
@@ -118,6 +114,50 @@ public class AuthController {
             response.put("message", e.getMessage());
             return ResponseEntity.status(401).body(response);
         }
+    }
+
+    public String generateVerificationEmailContent(String code) {
+        StringBuilder html = new StringBuilder();
+        html.append("<div style=\"font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 40px 20px;\">");
+        
+        // Logo
+        html.append("<div style=\"text-align: center; margin-bottom: 40px;\">")
+            .append("<img src=\"https://your-domain.com/logo.png\" alt=\"NoviceNest\" style=\"width: 40px; height: 40px;\">")
+            .append("</div>");
+        
+        // 标题
+        html.append("<div style=\"margin-bottom: 30px; text-align: center;\">")
+            .append("<h1 style=\"color: #1d1d1f; font-size: 24px; font-weight: 500; margin: 0 0 12px;\">验证你的邮箱地址</h1>")
+            .append("<p style=\"color: #424245; font-size: 16px; line-height: 1.5; margin: 0;\">")
+            .append("感谢你注册 NoviceNest。")
+            .append("</p>")
+            .append("</div>");
+        
+        // 验证码
+        html.append("<div style=\"background-color: #f5f5f7; border-radius: 12px; padding: 20px; text-align: center; margin-bottom: 30px;\">")
+            .append("<p style=\"color: #86868b; font-size: 14px; margin: 0 0 8px;\">你的验证码是</p>")
+            .append("<span style=\"color: #1d1d1f; font-size: 32px; font-weight: 500; letter-spacing: 8px;\">")
+            .append(code)
+            .append("</span>")
+            .append("</div>");
+        
+        // 提示文案
+        html.append("<p style=\"color: #86868b; font-size: 14px; line-height: 1.5; text-align: center; margin: 0;\">")
+            .append("验证码在 5 分钟内有效。<br>")
+            .append("如果你没有请求此验证码，请忽略这封邮件。")
+            .append("</p>");
+        
+        // 底部
+        html.append("<div style=\"border-top: 1px solid #e5e5e7; margin-top: 40px; padding-top: 20px; text-align: center;\">")
+            .append("<p style=\"color: #86868b; font-size: 12px; line-height: 1.5; margin: 0;\">")
+            .append("此邮件由系统自动发送，请勿回复。<br>")
+            .append("© 2024 NoviceNest. All rights reserved.")
+            .append("</p>")
+            .append("</div>");
+        
+        html.append("</div>");
+        
+        return html.toString();
     }
 
     public static class EmailRequest {

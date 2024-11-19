@@ -3,16 +3,22 @@ server:
 
 spring:
   mail:
-    host: smtp-mail.outlook.com
-    port: 587
-    username: kayano04@outlook.jp
-    password: ${MAIL_PASSWORD}
+    host: smtp.qq.com
+    port: 465
+    username: 你的QQ邮箱账号
+    password: 你的QQ邮箱授权码
     properties:
       mail:
         smtp:
           auth: true
           starttls:
             enable: true
+            required: true
+          ssl:
+            enable: true
+          socketFactory:
+            class: javax.net.ssl.SSLSocketFactory
+            port: 465
 
   datasource:
     url: jdbc:mysql://localhost:3306/novicenest?useSSL=false&serverTimezone=UTC
