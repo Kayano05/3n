@@ -1,5 +1,6 @@
 package com.novicenest.service;
 
+import com.novicenest.exception.AccountNotFoundException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,7 +23,7 @@ public class VerificationService {
 
     private final Map<String, VerificationCode> verificationCodes = new ConcurrentHashMap<>();
 
-    private static final String ACCOUNT_NOT_FOUND_MESSAGE = "该账号尚未注册，请先完成注册后再登录";
+    public static final String ACCOUNT_NOT_FOUND_MESSAGE = "该账号尚未注册，请先完成注册后再登录";
 
     public String generateAndSendCode(String email) throws MessagingException {
         String code = generateCode();
@@ -93,10 +94,20 @@ public class VerificationService {
 
     public boolean verifyCode(String email, String code) {
         VerificationCode storedCode = verificationCodes.get(email);
-        if (storedCode != null && !storedCode.isExpired() && storedCode.getCode().equals(code)) {
+        if (storedCode == null) {
+            throw new AccountNotFoundException(ACCOUNT_NOT_FOUND_MESSAGE);
+        }
+        
+        if (storedCode.isExpired()) {
+            verificationCodes.remove(email);
+            return false;
+        }
+        
+        if (storedCode.getCode().equals(code)) {
             verificationCodes.remove(email);
             return true;
         }
+        
         return false;
     }
 

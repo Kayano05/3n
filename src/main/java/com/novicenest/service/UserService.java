@@ -1,6 +1,7 @@
 package com.novicenest.service;
 
 import com.novicenest.entity.User;
+import com.novicenest.exception.AccountNotFoundException;
 import com.novicenest.repository.UserRepository;
 import com.novicenest.util.JwtUtil;
 import org.slf4j.Logger;
@@ -40,7 +41,7 @@ public class UserService {
 
     public LoginResponse login(String email, String password) {
         User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new RuntimeException("用户不存在"));
+                .orElseThrow(() -> new AccountNotFoundException(VerificationService.ACCOUNT_NOT_FOUND_MESSAGE));
 
         if (!passwordEncoder.matches(password, user.getPassword())) {
             throw new RuntimeException("密码错误");
