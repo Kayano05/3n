@@ -22,6 +22,8 @@ public class VerificationService {
 
     private final Map<String, VerificationCode> verificationCodes = new ConcurrentHashMap<>();
 
+    private static final String ACCOUNT_NOT_FOUND_MESSAGE = "该账号尚未注册，请先完成注册后再登录";
+
     public String generateAndSendCode(String email) throws MessagingException {
         String code = generateCode();
         verificationCodes.put(email, new VerificationCode(code));
